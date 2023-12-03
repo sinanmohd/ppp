@@ -1889,6 +1889,46 @@ update_script_environment(void)
 }
 
 /*
+ * log_run_program - calls fork(), and using a pipe
+ * the parent process redirects it's stdout and stderr to the
+ * child process, the child process reads it line by line
+ * and push it to syslog with the program name
+ */
+int
+log_run_program(char *prog) {
+    int fd[2];
+    char buf[DEBUG_LEN];
+    FILE *pipe_out;
+
+    if (pipe(fd)) {
+	return -1;
+    }
+
+    switch (fork()) {
+    case -1:
+	close(fd[0]);
+	close(fd[1]);
+
+	return -1;
+    case 0:
+	close(fd[1]); /* close write end */
+	pipe_out = fdopen(fd[0], "r");
+
+	while (fgets(buf, DEBUG_LEN - sizeof(prog) - 1, pipe_out))
+	    dbglog("%s: %s", prog, buf);
+
+	fclose(pipe_out);
+	exit(0);
+    default:
+	close(fd[0]); /* close read end */
+	dup2(fd[1], 1);
+	dup2(fd[1], 2);
+
+	return 0;
+    }
+}
+
+/*
  * run_program - execute a program with given arguments,
  * but don't wait for it unless wait is non-zero.
  * If the program can't be executed, logs an error unless
@@ -1962,7 +2002,11 @@ run_program(char *prog, char * const *args, int must_exist, void (*done)(void *)
 
     /* run the program */
     update_script_environment();
+    if (debug && log_run_program(prog)) {
+	dbglog("Failed to log %s", prog);
+    }
     execve(prog, args, script_env);
+
     if (must_exist || errno != ENOENT) {
 	/* have to reopen the log, there's nowhere else
 	   for the message to go. */

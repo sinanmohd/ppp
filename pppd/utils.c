@@ -602,7 +602,7 @@ print_string(char *p, int len, printer_func printer, void *arg)
 static void
 logit(int level, char *fmt, va_list args)
 {
-    char buf[1024];
+    char buf[DEBUG_LEN];
 
     vslprintf(buf, sizeof(buf), fmt, args);
     log_write(level, buf);

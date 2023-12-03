@@ -546,6 +546,8 @@ int parse_dotted_ip(char *, u_int32_t *);
 #define DEBUGCHAP	1
 #endif
 
+#define DEBUG_LEN 1024
+
 #ifndef LOG_PPP			/* we use LOG_LOCAL2 for syslog by default */
 #if defined(DEBUGMAIN) || defined(DEBUGFSM) || defined(DEBUGSYS) \
   || defined(DEBUGLCP) || defined(DEBUGIPCP) || defined(DEBUGUPAP) \
