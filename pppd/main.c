@@ -1895,7 +1895,7 @@ update_script_environment(void)
  * and push it to syslog with the program name
  */
 int
-log_run_program(char *prog) {
+log_run_program(const char *prog) {
     int fd[2];
     char buf[DEBUG_LEN];
     FILE *pipe_out;
